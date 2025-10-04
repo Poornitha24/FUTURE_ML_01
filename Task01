@@ -1,0 +1,47 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from prophet import Prophet
+
+# Step 1: Load CSV
+df = pd.read_csv('mock_kaggle(task01).csv')
+print("Loaded data successfully!")
+print("Column names:", df.columns.tolist())
+
+# Step 2: Rename columns for Prophet
+df = df.rename(columns={'data': 'ds', 'venda': 'y'})
+
+# Step 3: Convert 'ds' to datetime
+df['ds'] = pd.to_datetime(df['ds'], errors='coerce')
+
+# Step 4: Drop rows where 'ds' or 'y' is missing
+df = df.dropna(subset=['ds', 'y'])
+
+# Step 5: Ensure 'y' is numeric (convert if needed)
+df['y'] = pd.to_numeric(df['y'], errors='coerce')
+df = df.dropna(subset=['y'])  # In case any were non-numeric
+
+# Step 6: Check data types
+print("Data types:\n", df.dtypes)
+
+import logging
+logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
+
+# Step 7: Fit the model
+model = Prophet()
+model.fit(df)
+print("Model fitted successfully!")
+
+# Step 8: Forecast future
+future = model.make_future_dataframe(periods=90, freq='D')
+forecast = model.predict(future)
+
+# Step 9: Plot forecast
+model.plot(forecast)
+plt.title("Sales Forecast")
+plt.xlabel("Date")
+plt.ylabel("Sales")
+plt.show()
+
+# Step 10: Plot components
+model.plot_components(forecast)
+plt.show()
